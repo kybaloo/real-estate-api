@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import { isAuthenticated, authorizeRoles } from '../middlewares/auth.js';
+import * as bookingController from '../controllers/bookingController.js';
+
 const router = express.Router();
-const { isAuthenticated, authorizeRoles } = require('../middlewares/auth');
-const bookingController = require('../controllers/bookingController');
 
 // @route   GET /api/bookings
 // @desc    Récupérer toutes les réservations (propriétaire: ses biens, client: ses demandes, admin: toutes)
@@ -33,4 +34,4 @@ router.delete('/:id', isAuthenticated, bookingController.deleteBooking);
 // @access  Private (client ayant fait la réservation)
 router.post('/:id/feedback', isAuthenticated, bookingController.addFeedback);
 
-module.exports = router;
+export default router;
