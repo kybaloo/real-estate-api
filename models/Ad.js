@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const adSchema = new mongoose.Schema({
   title: {
@@ -84,4 +84,4 @@ adSchema.index({ price: 1 });
 adSchema.index({ 'property': 1 });
 adSchema.index({ createdAt: -1 });
 
-module.exports = mongoose.model('Ad', adSchema);
+export default mongoose.model('Ad', adSchema);
