@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const bookingSchema = new mongoose.Schema({
   property: {
@@ -77,4 +77,4 @@ bookingSchema.index({ client: 1 });
 bookingSchema.index({ owner: 1 });
 bookingSchema.index({ property: 1 });
 
-module.exports = mongoose.model('Booking', bookingSchema);
+export default mongoose.model('Booking', bookingSchema);
