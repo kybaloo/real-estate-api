@@ -1,0 +1,590 @@
+{
+  "paths": {
+    "/users/register": {
+      "post": {
+        "tags": ["Authentification"],
+        "summary": "Inscription d'un nouvel utilisateur",
+        "description": "Permet de créer un nouveau compte utilisateur avec un rôle spécifique",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["firstName", "lastName", "email", "password"],
+                "properties": {
+                  "firstName": { "type": "string" },
+                  "lastName": { "type": "string" },
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string", "format": "password" },
+                  "role": { 
+                    "type": "string", 
+                    "enum": ["client", "owner"],
+                    "default": "client"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Utilisateur créé avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "token": { "type": "string" },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides ou email déjà utilisé",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/login": {
+      "post": {
+        "tags": ["Authentification"],
+        "summary": "Connexion d'un utilisateur",
+        "description": "Authentifie un utilisateur et fournit un token JWT",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string", "format": "password" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Connexion réussie",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "token": { "type": "string" },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Email ou mot de passe incorrect",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "example": false },
+                    "message": { "type": "string", "example": "Email ou mot de passe incorrect" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me": {
+      "get": {
+        "tags": ["Utilisateurs"],
+        "summary": "Obtenir le profil de l'utilisateur connecté",
+        "description": "Renvoie les informations du profil de l'utilisateur authentifié",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Profil récupéré avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Non autorisé - Token manquant ou invalide"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Utilisateurs"],
+        "summary": "Mettre à jour le profil utilisateur",
+        "description": "Permet à un utilisateur de mettre à jour ses informations personnelles",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "firstName": { "type": "string" },
+                  "lastName": { "type": "string" },
+                  "email": { "type": "string", "format": "email" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profil mis à jour avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Non autorisé"
+          }
+        }
+      }
+    },
+    "/properties": {
+      "get": {
+        "tags": ["Biens immobiliers"],
+        "summary": "Liste des biens immobiliers",
+        "description": "Récupère la liste des biens immobiliers avec options de filtrage et pagination",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Numéro de la page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Nombre d'éléments par page",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Filtrer par type de bien",
+            "schema": {
+              "type": "string",
+              "enum": ["apartment", "house", "land", "commercial", "other"]
+            }
+          },
+          {
+            "name": "minSurface",
+            "in": "query",
+            "description": "Surface minimale en m²",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxSurface",
+            "in": "query",
+            "description": "Surface maximale en m²",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "minRooms",
+            "in": "query",
+            "description": "Nombre minimum de pièces",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "description": "Filtrer par ville",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Champ de tri (préfixé par - pour ordre descendant)",
+            "schema": {
+              "type": "string",
+              "example": "-createdAt"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des biens immobiliers récupérée avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "count": { "type": "integer" },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": { "type": "integer" },
+                        "limit": { "type": "integer" },
+                        "totalPages": { "type": "integer" },
+                        "totalItems": { "type": "integer" }
+                      }
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Property"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Biens immobiliers"],
+        "summary": "Créer un nouveau bien immobilier",
+        "description": "Permet à un propriétaire ou admin de créer un nouveau bien immobilier",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["title", "description", "address", "type", "surface"],
+                "properties": {
+                  "title": { "type": "string" },
+                  "description": { "type": "string" },
+                  "address": {
+                    "type": "object",
+                    "properties": {
+                      "street": { "type": "string" },
+                      "city": { "type": "string" },
+                      "zipCode": { "type": "string" },
+                      "country": { "type": "string" }
+                    }
+                  },
+                  "type": { 
+                    "type": "string",
+                    "enum": ["apartment", "house", "land", "commercial", "other"]
+                  },
+                  "surface": { "type": "number" },
+                  "rooms": { "type": "integer" },
+                  "features": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Bien immobilier créé avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "$ref": "#/components/schemas/Property"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Non autorisé"
+          },
+          "403": {
+            "description": "Rôle insuffisant (réservé aux propriétaires et admins)"
+          }
+        }
+      }
+    },
+    "/ads": {
+      "get": {
+        "tags": ["Annonces"],
+        "summary": "Liste des annonces",
+        "description": "Récupère la liste des annonces immobilières avec options de filtrage et pagination",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Numéro de la page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Nombre d'éléments par page",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Type d'annonce (vente ou location)",
+            "schema": {
+              "type": "string",
+              "enum": ["sale", "rent"]
+            }
+          },
+          {
+            "name": "minPrice",
+            "in": "query",
+            "description": "Prix minimum",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxPrice",
+            "in": "query",
+            "description": "Prix maximum",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "propertyType",
+            "in": "query",
+            "description": "Type de bien immobilier",
+            "schema": {
+              "type": "string",
+              "enum": ["apartment", "house", "land", "commercial", "other"]
+            }
+          },
+          {
+            "name": "city",
+            "in": "query",
+            "description": "Ville",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Statut de l'annonce",
+            "schema": {
+              "type": "string",
+              "enum": ["active", "pending", "sold", "rented"]
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Champ de tri",
+            "schema": {
+              "type": "string",
+              "example": "-price"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des annonces récupérée avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "count": { "type": "integer" },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "page": { "type": "integer" },
+                        "limit": { "type": "integer" },
+                        "totalPages": { "type": "integer" },
+                        "totalItems": { "type": "integer" }
+                      }
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Ad"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings": {
+      "post": {
+        "tags": ["Réservations"],
+        "summary": "Créer une demande de visite",
+        "description": "Permet à un client de créer une demande de visite pour une annonce",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["ad", "visitDate"],
+                "properties": {
+                  "ad": { "type": "string", "description": "ID de l'annonce" },
+                  "visitDate": { "type": "string", "format": "date-time" },
+                  "message": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Demande de visite créée avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "data": {
+                      "$ref": "#/components/schemas/Booking"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "401": {
+            "description": "Non autorisé"
+          },
+          "403": {
+            "description": "Accès refusé (rôle client requis)"
+          }
+        }
+      },
+      "get": {
+        "tags": ["Réservations"],
+        "summary": "Liste des réservations/visites",
+        "description": "Récupère les réservations/visites en fonction du rôle de l'utilisateur",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filtrer par statut",
+            "schema": {
+              "type": "string",
+              "enum": ["pending", "confirmed", "cancelled", "completed"]
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Champ de tri",
+            "schema": {
+              "type": "string",
+              "default": "-createdAt"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Liste des réservations récupérée avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "count": { "type": "integer" },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Booking"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Non autorisé"
+          }
+        }
+      }
+    }
+  }
+}
