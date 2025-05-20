@@ -1,11 +1,11 @@
-const User = require('../models/User');
-const Property = require('../models/Property');
-const { validationResult } = require('express-validator');
+import User from '../models/User.js';
+import Property from '../models/Property.js';
+import { validationResult  } from 'express-validator';
 
 // @desc    Inscription d'un nouvel utilisateur
 // @route   POST /api/users/register
 // @access  Public
-exports.registerUser = async (req, res) => {
+export const registerUser = async (req, res) => {
   // Validation des entrées
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -53,7 +53,7 @@ exports.registerUser = async (req, res) => {
 // @desc    Connexion d'un utilisateur
 // @route   POST /api/users/login
 // @access  Public
-exports.loginUser = async (req, res) => {
+export const loginUser = async (req, res) => {
   // Validation des entrées
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -94,7 +94,7 @@ exports.loginUser = async (req, res) => {
 // @desc    Obtenir le profil de l'utilisateur connecté
 // @route   GET /api/users/me
 // @access  Private
-exports.getUserProfile = async (req, res) => {
+export const getUserProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
     res.json(user);
@@ -106,7 +106,7 @@ exports.getUserProfile = async (req, res) => {
 // @desc    Mettre à jour le profil de l'utilisateur
 // @route   PUT /api/users/me
 // @access  Private
-exports.updateUserProfile = async (req, res) => {
+export const updateUserProfile = async (req, res) => {
   try {
     // Empêcher la modification du rôle ou de l'email
     if (req.body.role || req.body.email) {
@@ -129,7 +129,7 @@ exports.updateUserProfile = async (req, res) => {
 // @desc    Ajouter un bien immobilier aux favoris
 // @route   POST /api/users/favorites/:id
 // @access  Private (client)
-exports.addToFavorites = async (req, res) => {
+export const addToFavorites = async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
     if (!property) {
@@ -155,7 +155,7 @@ exports.addToFavorites = async (req, res) => {
 // @desc    Supprimer un bien immobilier des favoris
 // @route   DELETE /api/users/favorites/:id
 // @access  Private
-exports.removeFromFavorites = async (req, res) => {
+export const removeFromFavorites = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
     
@@ -177,7 +177,7 @@ exports.removeFromFavorites = async (req, res) => {
 // @desc    Récupérer tous les biens favoris de l'utilisateur
 // @route   GET /api/users/favorites
 // @access  Private
-exports.getFavorites = async (req, res) => {
+export const getFavorites = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).populate('favorites');
     res.json(user.favorites);
@@ -189,7 +189,7 @@ exports.getFavorites = async (req, res) => {
 // @desc    Récupérer tous les utilisateurs (admin uniquement)
 // @route   GET /api/users
 // @access  Private (admin)
-exports.getAllUsers = async (req, res) => {
+export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find().select('-password');
     res.json(users);
