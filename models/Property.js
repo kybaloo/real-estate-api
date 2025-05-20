@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const propertySchema = new mongoose.Schema({
   title: {
@@ -80,4 +80,4 @@ const propertySchema = new mongoose.Schema({
 // Indexation géospatiale pour les recherches de proximité
 propertySchema.index({ "address.location": "2dsphere" });
 
-module.exports = mongoose.model('Property', propertySchema);
+export default mongoose.model('Property', propertySchema);
