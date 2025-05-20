@@ -1,9 +1,9 @@
-const Property = require('../models/Property');
+import Property from '../models/Property.js';
 
 // @desc    Récupérer tous les biens immobiliers avec pagination et filtres
 // @route   GET /api/properties
 // @access  Public
-exports.getProperties = async (req, res) => {
+export const getProperties = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -57,7 +57,7 @@ exports.getProperties = async (req, res) => {
 // @desc    Récupérer un bien immobilier par son ID
 // @route   GET /api/properties/:id
 // @access  Public
-exports.getPropertyById = async (req, res) => {
+export const getPropertyById = async (req, res) => {
   try {
     const property = await Property.findById(req.params.id)
       .populate('owner', 'firstName lastName email phone');
@@ -75,7 +75,7 @@ exports.getPropertyById = async (req, res) => {
 // @desc    Créer un nouveau bien immobilier
 // @route   POST /api/properties
 // @access  Private (propriétaires et admins)
-exports.createProperty = async (req, res) => {
+export const createProperty = async (req, res) => {
   try {
     const newProperty = new Property({
       ...req.body,
@@ -92,7 +92,7 @@ exports.createProperty = async (req, res) => {
 // @desc    Mettre à jour un bien immobilier
 // @route   PUT /api/properties/:id
 // @access  Private (propriétaire du bien ou admin)
-exports.updateProperty = async (req, res) => {
+export const updateProperty = async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
     
@@ -128,7 +128,7 @@ exports.updateProperty = async (req, res) => {
 // @desc    Supprimer un bien immobilier
 // @route   DELETE /api/properties/:id
 // @access  Private (propriétaire du bien ou admin)
-exports.deleteProperty = async (req, res) => {
+export const deleteProperty = async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
     
