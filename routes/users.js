@@ -1,8 +1,9 @@
-const express = require('express');
+import express from 'express';
+import { body } from 'express-validator';
+import { isAuthenticated, authorizeRoles } from '../middlewares/auth.js';
+import * as userController from '../controllers/userController.js';
+
 const router = express.Router();
-const { body } = require('express-validator');
-const { isAuthenticated, authorizeRoles } = require('../middlewares/auth');
-const userController = require('../controllers/userController');
 
 // @route   POST /api/users/register
 // @desc    Inscription d'un nouvel utilisateur
@@ -58,4 +59,4 @@ router.get('/favorites', isAuthenticated, userController.getFavorites);
 // @access  Private (admin)
 router.get('/', isAuthenticated, authorizeRoles(['admin']), userController.getAllUsers);
 
-module.exports = router;
+export default router;
