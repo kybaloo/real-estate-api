@@ -1,10 +1,10 @@
-const Ad = require('../models/Ad');
-const Property = require('../models/Property');
+import Ad from '../models/Ad.js';
+import Property from '../models/Property.js';
 
 // @desc    Récupérer toutes les annonces avec filtres
 // @route   GET /api/ads
 // @access  Public
-exports.getAds = async (req, res) => {
+export const getAds = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -75,7 +75,7 @@ exports.getAds = async (req, res) => {
 // @desc    Récupérer une annonce par son ID
 // @route   GET /api/ads/:id
 // @access  Public
-exports.getAdById = async (req, res) => {
+export const getAdById = async (req, res) => {
   try {
     const ad = await Ad.findById(req.params.id)
       .populate('property')
@@ -98,7 +98,7 @@ exports.getAdById = async (req, res) => {
 // @desc    Créer une nouvelle annonce
 // @route   POST /api/ads
 // @access  Private (propriétaire ou admin)
-exports.createAd = async (req, res) => {
+export const createAd = async (req, res) => {
   try {
     // Vérifier que la propriété existe
     const property = await Property.findById(req.body.property);
@@ -133,7 +133,7 @@ exports.createAd = async (req, res) => {
 // @desc    Mettre à jour une annonce
 // @route   PUT /api/ads/:id
 // @access  Private (propriétaire de l'annonce ou admin)
-exports.updateAd = async (req, res) => {
+export const updateAd = async (req, res) => {
   try {
     const ad = await Ad.findById(req.params.id);
     
@@ -174,7 +174,7 @@ exports.updateAd = async (req, res) => {
 // @desc    Supprimer une annonce
 // @route   DELETE /api/ads/:id
 // @access  Private (propriétaire de l'annonce ou admin)
-exports.deleteAd = async (req, res) => {
+export const deleteAd = async (req, res) => {
   try {
     const ad = await Ad.findById(req.params.id);
     
@@ -214,7 +214,7 @@ exports.deleteAd = async (req, res) => {
 // @desc    Récupérer toutes les annonces d'un bien immobilier
 // @route   GET /api/ads/property/:propertyId
 // @access  Public
-exports.getAdsByProperty = async (req, res) => {
+export const getAdsByProperty = async (req, res) => {
   try {
     const ads = await Ad.find({ 
       property: req.params.propertyId,
