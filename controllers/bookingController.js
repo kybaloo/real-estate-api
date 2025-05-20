@@ -1,11 +1,11 @@
-const Booking = require('../models/Booking');
-const Ad = require('../models/Ad');
-const Property = require('../models/Property');
+import Booking from '../models/Booking.js';
+import Ad from '../models/Ad.js';
+import Property from '../models/Property.js';
 
 // @desc    Récupérer toutes les réservations (propriétaire: ses biens, client: ses demandes, admin: toutes)
 // @route   GET /api/bookings
 // @access  Private
-exports.getBookings = async (req, res) => {
+export const getBookings = async (req, res) => {
   try {
     let filter = {};
     
@@ -53,7 +53,7 @@ exports.getBookings = async (req, res) => {
 // @desc    Créer une nouvelle demande de visite
 // @route   POST /api/bookings
 // @access  Private (client)
-exports.createBooking = async (req, res) => {
+export const createBooking = async (req, res) => {
   try {
     // Vérifier que l'annonce existe
     const ad = await Ad.findById(req.body.ad);
@@ -118,7 +118,7 @@ exports.createBooking = async (req, res) => {
 // @desc    Récupérer une réservation par son ID
 // @route   GET /api/bookings/:id
 // @access  Private (propriétaire du bien, client demandeur, admin)
-exports.getBookingById = async (req, res) => {
+export const getBookingById = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id)
       .populate('property')
@@ -146,7 +146,7 @@ exports.getBookingById = async (req, res) => {
 // @desc    Mettre à jour le statut d'une réservation (confirmer/annuler)
 // @route   PUT /api/bookings/:id/status
 // @access  Private (propriétaire du bien, admin)
-exports.updateBookingStatus = async (req, res) => {
+export const updateBookingStatus = async (req, res) => {
   try {
     const { status } = req.body;
     
@@ -183,7 +183,7 @@ exports.updateBookingStatus = async (req, res) => {
 // @desc    Annuler une réservation (client seulement si status=pending)
 // @route   DELETE /api/bookings/:id
 // @access  Private (client, propriétaire du bien, admin)
-exports.deleteBooking = async (req, res) => {
+export const deleteBooking = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id);
     
@@ -218,7 +218,7 @@ exports.deleteBooking = async (req, res) => {
 // @desc    Ajouter un avis après une visite
 // @route   POST /api/bookings/:id/feedback
 // @access  Private (client ayant fait la réservation)
-exports.addFeedback = async (req, res) => {
+export const addFeedback = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id);
     
