@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import { isAuthenticated, authorizeRoles } from '../middlewares/auth.js';
+import * as propertyController from '../controllers/propertyController.js';
+
 const router = express.Router();
-const { isAuthenticated, authorizeRoles } = require('../middlewares/auth');
-const propertyController = require('../controllers/propertyController');
 
 // @route   GET /api/properties
 // @desc    Récupérer tous les biens immobiliers avec pagination et filtres
@@ -38,4 +39,4 @@ router.delete('/:id',
   propertyController.deleteProperty
 );
 
-module.exports = router;
+export default router;
