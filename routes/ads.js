@@ -1,7 +1,8 @@
-const express = require('express');
+import express from 'express';
+import { isAuthenticated, authorizeRoles } from '../middlewares/auth.js';
+import * as adController from '../controllers/adController.js';
+
 const router = express.Router();
-const { isAuthenticated, authorizeRoles } = require('../middlewares/auth');
-const adController = require('../controllers/adController');
 
 // @route   GET /api/ads
 // @desc    Récupérer toutes les annonces avec filtres
@@ -43,4 +44,4 @@ router.delete('/:id',
   adController.deleteAd
 );
 
-module.exports = router;
+export default router;
