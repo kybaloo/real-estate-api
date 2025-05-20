@@ -1,0 +1,253 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API Gestion Immobilier",
+    "description": "API pour la gestion de biens immobiliers, annonces, utilisateurs et réservations",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Support Technique",
+      "email": "support@real-estate-api.com"
+    },
+    "license": {
+      "name": "ISC",
+      "url": "https://opensource.org/licenses/ISC"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/api",
+      "description": "Serveur de développement local"
+    },
+    {
+      "url": "https://api.real-estate-example.com/api",
+      "description": "Serveur de production (exemple)"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Authentification",
+      "description": "Gestion de l'inscription et la connexion des utilisateurs"
+    },
+    {
+      "name": "Utilisateurs",
+      "description": "Opérations liées aux profils utilisateurs et favoris"
+    },
+    {
+      "name": "Biens immobiliers",
+      "description": "Gestion complète des biens immobiliers"
+    },
+    {
+      "name": "Annonces",
+      "description": "Gestion des annonces de vente ou location"
+    },
+    {
+      "name": "Réservations",
+      "description": "Gestion des demandes de visite"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "Identifiant unique de l'utilisateur"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "Prénom de l'utilisateur"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Nom de famille de l'utilisateur"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Adresse email de l'utilisateur"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["client", "owner", "admin"],
+            "description": "Rôle de l'utilisateur dans le système"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de création du compte"
+          },
+          "favorites": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Liste des IDs des annonces favorites (pour les clients)"
+          }
+        }
+      },
+      "Property": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "Identifiant unique du bien immobilier"
+          },
+          "title": {
+            "type": "string",
+            "description": "Titre du bien immobilier"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description détaillée du bien"
+          },
+          "address": {
+            "type": "object",
+            "properties": {
+              "street": {
+                "type": "string"
+              },
+              "city": {
+                "type": "string"
+              },
+              "zipCode": {
+                "type": "string"
+              },
+              "country": {
+                "type": "string"
+              }
+            }
+          },
+          "type": {
+            "type": "string",
+            "enum": ["apartment", "house", "land", "commercial", "other"],
+            "description": "Type du bien immobilier"
+          },
+          "surface": {
+            "type": "number",
+            "description": "Surface en mètres carrés"
+          },
+          "rooms": {
+            "type": "integer",
+            "description": "Nombre de pièces"
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Caractéristiques du bien"
+          },
+          "owner": {
+            "type": "string",
+            "description": "ID du propriétaire"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Ad": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "property": {
+            "type": "string",
+            "description": "ID du bien immobilier"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["sale", "rent"],
+            "description": "Type d'annonce (vente ou location)"
+          },
+          "price": {
+            "type": "number",
+            "description": "Prix de vente ou loyer mensuel"
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "URLs des images"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "pending", "sold", "rented"],
+            "description": "Statut de l'annonce"
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "ID de l'utilisateur ayant créé l'annonce"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Booking": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "ad": {
+            "type": "string",
+            "description": "ID de l'annonce"
+          },
+          "client": {
+            "type": "string",
+            "description": "ID du client"
+          },
+          "visitDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date et heure de la visite"
+          },
+          "message": {
+            "type": "string",
+            "description": "Message du client"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "confirmed", "cancelled", "completed"],
+            "description": "Statut de la réservation"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  }
+}
