@@ -1,0 +1,1272 @@
+openapi: 3.0.0
+info:
+  title: API Gestion Immobilier
+  description: API pour la gestion de biens immobiliers, annonces, utilisateurs et réservations
+  version: 1.0.0
+  contact:
+    name: Support Technique
+    email: support@real-estate-api.com
+  license:
+    name: ISC
+    url: https://opensource.org/licenses/ISC
+
+servers:
+  - url: http://localhost:3000/api
+    description: Serveur de développement local
+  - url: https://api.real-estate-example.com/api
+    description: Serveur de production (exemple)
+
+tags:
+  - name: Authentification
+    description: Gestion de l'inscription et la connexion des utilisateurs
+  - name: Utilisateurs
+    description: Opérations liées aux profils utilisateurs et favoris
+  - name: Biens immobiliers
+    description: Gestion complète des biens immobiliers
+  - name: Annonces
+    description: Gestion des annonces de vente ou location
+  - name: Réservations
+    description: Gestion des demandes de visite
+
+paths:
+  /users/register:
+    post:
+      tags:
+        - Authentification
+      summary: Inscription d'un nouvel utilisateur
+      description: Permet de créer un nouveau compte utilisateur avec un rôle spécifique
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - firstName
+                - lastName
+                - email
+                - password
+              properties:
+                firstName:
+                  type: string
+                  example: Jean
+                lastName:
+                  type: string
+                  example: Dupont
+                email:
+                  type: string
+                  format: email
+                  example: jean.dupont@example.com
+                password:
+                  type: string
+                  format: password
+                  example: motdepasse123
+                  minLength: 6
+                role:
+                  type: string
+                  enum: [client, propriétaire]
+                  default: client
+                  example: client
+                phone:
+                  type: string
+                  example: "+33612345678"
+      responses:
+        201:
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/UserResponse'
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        400:
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: Cet email est déjà utilisé
+
+  /users/login:
+    post:
+      tags:
+        - Authentification
+      summary: Connexion d'un utilisateur
+      description: Authentifie un utilisateur et renvoie un token JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: jean.dupont@example.com
+                password:
+                  type: string
+                  format: password
+                  example: motdepasse123
+      responses:
+        200:
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/UserResponse'
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        401:
+          description: Authentification échouée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: Email ou mot de passe incorrect
+
+  /users/me:
+    get:
+      tags:
+        - Utilisateurs
+      summary: Récupérer le profil de l'utilisateur connecté
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Profil récupéré avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      tags:
+        - Utilisateurs
+      summary: Mettre à jour le profil de l'utilisateur
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                phone:
+                  type: string
+                avatar:
+                  type: string
+      responses:
+        200:
+          description: Profil mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/favorites:
+    get:
+      tags:
+        - Utilisateurs
+      summary: Récupérer les biens favoris de l'utilisateur
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Liste des favoris récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Property'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/favorites/{id}:
+    post:
+      tags:
+        - Utilisateurs
+      summary: Ajouter un bien immobilier aux favoris
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      responses:
+        200:
+          description: Bien ajouté aux favoris avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Bien ajouté aux favoris
+        400:
+          description: Erreur de requête
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: Ce bien est déjà dans vos favoris
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Utilisateurs
+      summary: Supprimer un bien immobilier des favoris
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      responses:
+        200:
+          description: Bien supprimé des favoris avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Bien supprimé des favoris
+        400:
+          description: Erreur de requête
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: Ce bien n'est pas dans vos favoris
+        401:
+          $ref: '#/components/responses/Unauthorized'
+
+  /properties:
+    get:
+      tags:
+        - Biens immobiliers
+      summary: Récupérer tous les biens immobiliers
+      description: Récupérer la liste des biens immobiliers avec pagination et filtres
+      parameters:
+        - name: page
+          in: query
+          description: Numéro de page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Nombre d'éléments par page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: type
+          in: query
+          description: Type de bien
+          schema:
+            type: string
+            enum: [appartement, maison, terrain, commerce, bureau, garage]
+        - name: minPrice
+          in: query
+          description: Prix minimum
+          schema:
+            type: integer
+            minimum: 0
+        - name: maxPrice
+          in: query
+          description: Prix maximum
+          schema:
+            type: integer
+            minimum: 0
+        - name: city
+          in: query
+          description: Ville
+          schema:
+            type: string
+        - name: minSurface
+          in: query
+          description: Surface minimum en m²
+          schema:
+            type: integer
+            minimum: 0
+        - name: maxSurface
+          in: query
+          description: Surface maximum en m²
+          schema:
+            type: integer
+            minimum: 0
+        - name: rooms
+          in: query
+          description: Nombre de pièces
+          schema:
+            type: integer
+            minimum: 0
+        - name: status
+          in: query
+          description: Statut du bien
+          schema:
+            type: string
+            enum: [disponible, à vendre, à louer, vendu, loué, réservé]
+      responses:
+        200:
+          description: Liste des biens immobiliers avec pagination
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  properties:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Property'
+                  totalPages:
+                    type: integer
+                    example: 5
+                  currentPage:
+                    type: integer
+                    example: 1
+                  total:
+                    type: integer
+                    example: 42
+        500:
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags:
+        - Biens immobiliers
+      summary: Créer un nouveau bien immobilier
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PropertyInput'
+      responses:
+        201:
+          description: Bien immobilier créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
+
+  /properties/{id}:
+    get:
+      tags:
+        - Biens immobiliers
+      summary: Récupérer un bien immobilier par son ID
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      responses:
+        200:
+          description: Bien immobilier récupéré avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+        404:
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Biens immobiliers
+      summary: Mettre à jour un bien immobilier
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PropertyInput'
+      responses:
+        200:
+          description: Bien immobilier mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Property'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
+        404:
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Biens immobiliers
+      summary: Supprimer un bien immobilier
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      responses:
+        200:
+          description: Bien immobilier supprimé avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Bien immobilier supprimé avec succès
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /ads:
+    get:
+      tags:
+        - Annonces
+      summary: Récupérer toutes les annonces
+      description: Récupérer la liste des annonces avec pagination et filtres
+      parameters:
+        - name: page
+          in: query
+          description: Numéro de page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Nombre d'éléments par page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: type
+          in: query
+          description: Type d'annonce (vente ou location)
+          schema:
+            type: string
+            enum: [vente, location]
+        - name: minPrice
+          in: query
+          description: Prix minimum
+          schema:
+            type: integer
+            minimum: 0
+        - name: maxPrice
+          in: query
+          description: Prix maximum
+          schema:
+            type: integer
+            minimum: 0
+        - name: city
+          in: query
+          description: Ville du bien
+          schema:
+            type: string
+        - name: propertyType
+          in: query
+          description: Type de bien immobilier
+          schema:
+            type: string
+            enum: [appartement, maison, terrain, commerce, bureau, garage]
+        - name: minSurface
+          in: query
+          description: Surface minimum en m²
+          schema:
+            type: integer
+            minimum: 0
+        - name: maxSurface
+          in: query
+          description: Surface maximum en m²
+          schema:
+            type: integer
+            minimum: 0
+      responses:
+        200:
+          description: Liste des annonces avec pagination
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ads:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Ad'
+                  totalPages:
+                    type: integer
+                    example: 5
+                  currentPage:
+                    type: integer
+                    example: 1
+                  total:
+                    type: integer
+                    example: 42
+        500:
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags:
+        - Annonces
+      summary: Créer une nouvelle annonce
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdInput'
+      responses:
+        201:
+          description: Annonce créée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ad'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
+        404:
+          description: Bien immobilier non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /ads/{id}:
+    get:
+      tags:
+        - Annonces
+      summary: Récupérer une annonce par son ID
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      responses:
+        200:
+          description: Annonce récupérée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ad'
+        404:
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Annonces
+      summary: Mettre à jour une annonce
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdInput'
+      responses:
+        200:
+          description: Annonce mise à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ad'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
+        404:
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Annonces
+      summary: Supprimer une annonce
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      responses:
+        200:
+          description: Annonce supprimée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Annonce supprimée avec succès
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /ads/property/{propertyId}:
+    get:
+      tags:
+        - Annonces
+      summary: Récupérer les annonces d'un bien immobilier
+      parameters:
+        - name: propertyId
+          in: path
+          required: true
+          description: ID du bien immobilier
+          schema:
+            type: string
+            format: objectId
+      responses:
+        200:
+          description: Liste des annonces pour le bien immobilier
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ad'
+        500:
+          $ref: '#/components/responses/InternalError'
+
+  /bookings:
+    get:
+      tags:
+        - Réservations
+      summary: Récupérer toutes les réservations
+      description: Récupère les réservations selon le rôle de l'utilisateur connecté
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Numéro de page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Nombre d'éléments par page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: status
+          in: query
+          description: Statut de la réservation
+          schema:
+            type: string
+            enum: [pending, confirmed, cancelled, completed]
+      responses:
+        200:
+          description: Liste des réservations avec pagination
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bookings:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Booking'
+                  totalPages:
+                    type: integer
+                    example: 5
+                  currentPage:
+                    type: integer
+                    example: 1
+                  total:
+                    type: integer
+                    example: 42
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        500:
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags:
+        - Réservations
+      summary: Créer une nouvelle demande de visite
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingInput'
+      responses:
+        201:
+          description: Demande de visite créée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        404:
+          description: Bien immobilier ou annonce non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bookings/{id}:
+    get:
+      tags:
+        - Réservations
+      summary: Récupérer une réservation par son ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      responses:
+        200:
+          description: Réservation récupérée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
+        404:
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags:
+        - Réservations
+      summary: Annuler une réservation
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      responses:
+        200:
+          description: Réservation annulée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Réservation annulée avec succès
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /bookings/{id}/status:
+    put:
+      tags:
+        - Réservations
+      summary: Mettre à jour le statut d'une réservation
+      description: Permet au propriétaire ou à l'admin de confirmer ou annuler une réservation
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [confirmed, cancelled, completed]
+                notes:
+                  type: string
+                  example: Rendez-vous avec le propriétaire à l'entrée du bâtiment
+      responses:
+        200:
+          description: Statut de réservation mis à jour avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /bookings/{id}/feedback:
+    post:
+      tags:
+        - Réservations
+      summary: Ajouter un feedback après une visite
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/idParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  example: Visite très intéressante, le logement était conforme à l'annonce.
+                rating:
+                  type: integer
+                  minimum: 0
+                  maximum: 5
+                  example: 4
+      responses:
+        200:
+          description: Feedback ajouté avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Booking'
+        400:
+          description: Erreur de requête
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                message: Vous ne pouvez ajouter un avis que pour une visite terminée
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Utilisez un token JWT pour vous authentifier
+
+  parameters:
+    idParam:
+      name: id
+      in: path
+      required: true
+      description: ID de la ressource
+      schema:
+        type: string
+        format: objectId
+
+  responses:
+    BadRequest:
+      description: Requête invalide
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Authentification requise
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: Accès non autorisé. Veuillez vous connecter.
+    Forbidden:
+      description: Accès refusé
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: Accès non autorisé à cette ressource
+    NotFound:
+      description: Ressource non trouvée
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: Ressource introuvable
+    InternalError:
+      description: Erreur serveur
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            message: Erreur serveur interne
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              msg:
+                type: string
+              param:
+                type: string
+              location:
+                type: string
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: objectId
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          format: objectId
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [client, propriétaire, admin]
+        phone:
+          type: string
+        avatar:
+          type: string
+        favorites:
+          type: array
+          items:
+            type: string
+            format: objectId
+        verified:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PropertyInput:
+      type: object
+      required:
+        - title
+        - description
+        - type
+        - price
+        - surface
+        - address
+      properties:
+        title:
+          type: string
+          example: Appartement T3 lumineux
+        description:
+          type: string
+          example: Bel appartement rénové avec vue dégagée
+        type:
+          type: string
+          enum: [appartement, maison, terrain, commerce, bureau, garage]
+          example: appartement
+        price:
+          type: number
+          example: 250000
+        surface:
+          type: number
+          example: 75
+        rooms:
+          type: number
+          example: 3
+        address:
+          type: object
+          required:
+            - city
+            - zipCode
+          properties:
+            street:
+              type: string
+              example: 123 rue de la Paix
+            city:
+              type: string
+              example: Paris
+            zipCode:
+              type: string
+              example: "75001"
+            country:
+              type: string
+              example: France
+            location:
+              type: object
+              properties:
+                coordinates:
+                  type: array
+                  items:
+                    type: number
+                  example: [2.3488, 48.8534]
+        features:
+          type: array
+          items:
+            type: string
+          example: [balcon, ascenseur, parking]
+        images:
+          type: array
+          items:
+            type: string
+          example: [url1.jpg, url2.jpg]
+
+    Property:
+      allOf:
+        - $ref: '#/components/schemas/PropertyInput'
+        - type: object
+          properties:
+            _id:
+              type: string
+              format: objectId
+            owner:
+              oneOf:
+                - type: string
+                  format: objectId
+                - $ref: '#/components/schemas/User'
+            status:
+              type: string
+              enum: [disponible, 'à vendre', 'à louer', vendu, loué, réservé]
+              example: disponible
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+
+    AdInput:
+      type: object
+      required:
+        - title
+        - description
+        - type
+        - price
+        - property
+      properties:
+        title:
+          type: string
+          example: T3 lumineux à vendre
+        description:
+          type: string
+          example: Ne manquez pas cette opportunité...
+        type:
+          type: string
+          enum: [vente, location]
+          example: vente
+        price:
+          type: number
+          example: 250000
+        property:
+          type: string
+          format: objectId
+        status:
+          type: string
+          enum: [active, inactive, expired, completed]
+          default: active
+        rentalDetails:
+          type: object
+          properties:
+            duration:
+              type: string
+              example: mensuel
+            depositAmount:
+              type: number
+              example: 1000
+            availability:
+              type: string
+              format: date
+        contactInfo:
+          type: object
+          properties:
+            useOwnerInfo:
+              type: boolean
+              default: true
+            phone:
+              type: string
+            email:
+              type: string
+        highlighted:
+          type: boolean
+          default: false
+
+    Ad:
+      allOf:
+        - $ref: '#/components/schemas/AdInput'
+        - type: object
+          properties:
+            _id:
+              type: string
+              format: objectId
+            owner:
+              oneOf:
+                - type: string
+                  format: objectId
+                - $ref: '#/components/schemas/User'
+            viewCount:
+              type: integer
+              example: 42
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+            expiresAt:
+              type: string
+              format: date-time
+
+    BookingInput:
+      type: object
+      required:
+        - property
+        - ad
+        - date
+        - timeSlot
+      properties:
+        property:
+          type: string
+          format: objectId
+        ad:
+          type: string
+          format: objectId
+        date:
+          type: string
+          format: date
+          example: '2023-06-15'
+        timeSlot:
+          type: object
+          required:
+            - start
+            - end
+          properties:
+            start:
+              type: string
+              example: '14:00'
+            end:
+              type: string
+              example: '15:00'
+        message:
+          type: string
+          example: Je suis intéressé par ce bien et j'aimerais le visiter.
+
+    Booking:
+      allOf:
+        - $ref: '#/components/schemas/BookingInput'
+        - type: object
+          properties:
+            _id:
+              type: string
+              format: objectId
+            client:
+              oneOf:
+                - type: string
+                  format: objectId
+                - $ref: '#/components/schemas/User'
+            owner:
+              oneOf:
+                - type: string
+                  format: objectId
+                - $ref: '#/components/schemas/User'
+            status:
+              type: string
+              enum: [pending, confirmed, cancelled, completed]
+              example: pending
+            notes:
+              type: string
+            feedbackClient:
+              type: object
+              properties:
+                text:
+                  type: string
+                rating:
+                  type: integer
+                  minimum: 0
+                  maximum: 5
+            feedbackOwner:
+              type: object
+              properties:
+                text:
+                  type: string
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
