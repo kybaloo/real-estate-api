@@ -1,9 +1,21 @@
-const express = require('express');
+import express from 'express';
+import { getExamples, getExampleById, createExample } from '../controllers/exampleController.js';
+
 const router = express.Router();
 
-// Exemple de route GET
-router.get('/', (req, res) => {
-  res.json({ message: 'Bienvenue sur l’API Node.js !' });
-});
+// @route   GET /api/examples
+// @desc    Récupérer tous les exemples
+// @access  Public
+router.get('/', getExamples);
 
-module.exports = router;
+// @route   GET /api/examples/:id
+// @desc    Récupérer un exemple par son ID
+// @access  Public
+router.get('/:id', getExampleById);
+
+// @route   POST /api/examples
+// @desc    Créer un nouvel exemple
+// @access  Public
+router.post('/', createExample);
+
+export default router;
