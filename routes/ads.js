@@ -32,7 +32,8 @@ router.post('/',
 // @desc    Mettre à jour une annonce
 // @access  Private (propriétaire de l'annonce ou admin)
 router.put('/:id', 
-  isAuthenticated, 
+  isAuthenticated,
+  authorizeRoles(['propriétaire', 'admin']),
   adController.updateAd
 );
 
@@ -40,8 +41,27 @@ router.put('/:id',
 // @desc    Supprimer une annonce
 // @access  Private (propriétaire de l'annonce ou admin)
 router.delete('/:id', 
-  isAuthenticated, 
+  isAuthenticated,
+  authorizeRoles(['propriétaire', 'admin']),
   adController.deleteAd
+);
+
+// @route   PUT /api/ads/:id/highlight
+// @desc    Mettre en avant une annonce
+// @access  Private (propriétaire de l'annonce ou admin)
+router.put('/:id/highlight',
+  isAuthenticated,
+  authorizeRoles(['propriétaire', 'admin']),
+  adController.highlightAd
+);
+
+// @route   PUT /api/ads/:id/status
+// @desc    Mettre à jour le statut d'une annonce
+// @access  Private (propriétaire de l'annonce ou admin)
+router.put('/:id/status',
+  isAuthenticated,
+  authorizeRoles(['propriétaire', 'admin']),
+  adController.updateAdStatus
 );
 
 export default router;
