@@ -150,3 +150,74 @@ export const deleteProperty = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Récupérer les images d'un bien immobilier
+// @route   GET /api/properties/:id/images
+// @access  Public
+export const getPropertyImages = async (req, res) => {
+  try {
+    const property = await Property.findById(req.params.id);
+    if (!property) {
+      return res.status(404).json({ message: 'Bien immobilier non trouvé' });
+    }
+    res.json(property.images);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Ajouter des images à un bien immobilier
+// @route   POST /api/properties/:id/images
+// @access  Private (propriétaire du bien ou admin)
+export const addPropertyImages = async (req, res) => {
+  try {
+    const property = await Property.findById(req.params.id);
+    if (!property) {
+      return res.status(404).json({ message: 'Bien immobilier non trouvé' });
+    }
+
+    if (property.owner.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Non autorisé à modifier ce bien' });
+    }
+
+    // Vérifier que req.body.images est un tableau d'URLs d'images
+    if (!Array.isArray(req.body.images)) {
+      return res.status(400).json({ message: 'Le format des images est invalide' });
+    }
+
+    property.images.push(...req.body.images);
+    await property.save();
+
+    res.json(property.images);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Supprimer une image d'un bien immobilier
+// @route   DELETE /api/properties/:id/images/:imageId
+// @access  Private (propriétaire du bien ou admin)
+export const deletePropertyImage = async (req, res) => {
+  try {
+    const property = await Property.findById(req.params.id);
+    if (!property) {
+      return res.status(404).json({ message: 'Bien immobilier non trouvé' });
+    }
+
+    if (property.owner.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Non autorisé à modifier ce bien' });
+    }
+
+    const imageIndex = property.images.findIndex(img => img === req.params.imageId);
+    if (imageIndex === -1) {
+      return res.status(404).json({ message: 'Image non trouvée' });
+    }
+
+    property.images.splice(imageIndex, 1);
+    await property.save();
+
+    res.json({ message: 'Image supprimée avec succès' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
