@@ -32,6 +32,28 @@ router.delete('/:id', isAuthenticated, bookingController.deleteBooking);
 // @route   POST /api/bookings/:id/feedback
 // @desc    Ajouter un avis après une visite
 // @access  Private (client ayant fait la réservation)
-router.post('/:id/feedback', isAuthenticated, bookingController.addFeedback);
+router.post('/:id/feedback', 
+  isAuthenticated,
+  authorizeRoles(['client']),
+  bookingController.addClientFeedback
+);
+
+// @route   POST /api/bookings/:id/owner-feedback
+// @desc    Ajouter un commentaire du propriétaire après une visite
+// @access  Private (propriétaire du bien)
+router.post('/:id/owner-feedback',
+  isAuthenticated,
+  authorizeRoles(['propriétaire']),
+  bookingController.addOwnerFeedback
+);
+
+// @route   GET /api/bookings/property/:propertyId
+// @desc    Récupérer toutes les réservations d'un bien immobilier
+// @access  Private (propriétaire du bien, admin)
+router.get('/property/:propertyId',
+  isAuthenticated,
+  authorizeRoles(['propriétaire', 'admin']),
+  bookingController.getBookingsByProperty
+);
 
 export default router;
