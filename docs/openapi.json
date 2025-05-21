@@ -22,8 +22,7 @@
       "url": "https://api.real-estate-example.com/api",
       "description": "Serveur de production (exemple)"
     }
-  ],
-  "tags": [
+  ],  "tags": [
     {
       "name": "Authentification",
       "description": "Gestion de l'inscription et la connexion des utilisateurs"
@@ -43,6 +42,10 @@
     {
       "name": "Réservations",
       "description": "Gestion des demandes de visite"
+    },
+    {
+      "name": "Exemples",
+      "description": "Routes d'exemple pour l'API"
     }
   ],
   "components": {
@@ -241,8 +244,22 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Example": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
           },
-          "updatedAt": {
+          "name": {
+            "type": "string"
+          },
+          "createdAt": {
             "type": "string",
             "format": "date-time"
           }

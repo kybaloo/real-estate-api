@@ -1,5 +1,102 @@
 {
-  "paths": {
+  "paths": {    "/examples": {
+      "get": {
+        "tags": ["Exemples"],
+        "summary": "Récupérer tous les exemples",
+        "description": "Retourne tous les exemples disponibles",
+        "responses": {
+          "200": {
+            "description": "Liste des exemples ou message de bienvenue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erreur serveur"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Exemples"],
+        "summary": "Créer un nouvel exemple",
+        "description": "Ajoute un nouvel exemple à la base de données",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Exemple créé avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Example"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Données invalides"
+          },
+          "500": {
+            "description": "Erreur serveur"
+          }
+        }
+      }
+    },
+    "/examples/{id}": {
+      "get": {
+        "tags": ["Exemples"],
+        "summary": "Récupérer un exemple par son ID",
+        "description": "Retourne un exemple spécifique selon son ID",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID de l'exemple à récupérer",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Exemple trouvé",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Example"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Exemple non trouvé"
+          },
+          "500": {
+            "description": "Erreur serveur"
+          }
+        }
+      }
+    },
     "/users/register": {
       "post": {
         "tags": ["Authentification"],
