@@ -41,14 +41,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Importation des routes principales
 import propertyRoutes from './routes/properties.js';
 import adRoutes from './routes/ads.js';
+import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
 import bookingRoutes from './routes/bookings.js';
+import exampleRoutes from './routes/example.js';
 
 // Montage des routes
 app.use('/api/properties', propertyRoutes);
 app.use('/api/ads', adRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/examples', exampleRoutes);
 
 // Route racine pour vérifier que l'API fonctionne
 app.get('/', (req, res) => {
