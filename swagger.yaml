@@ -528,7 +528,7 @@ paths:
           description: Statut du bien
           schema:
             type: string
-            enum: [disponible, à vendre, à louer, vendu, loué, réservé]
+            enum: [disponible, vendu, loué, réservé]
       responses:
         '200':
           description: Liste des biens récupérée avec succès.
@@ -1632,7 +1632,7 @@ components:
           nullable: true
         status:
           type: string
-          enum: [disponible, \'à vendre\', \'à louer\', vendu, loué, réservé, en construction, rénovation]
+          enum: [disponible, vendu, loué, réservé]
           example: disponible
           default: disponible
 
