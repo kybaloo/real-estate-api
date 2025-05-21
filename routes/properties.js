@@ -27,16 +27,41 @@ router.post('/',
 // @desc    Mettre à jour un bien immobilier
 // @access  Private (propriétaire du bien ou admin)
 router.put('/:id', 
-  isAuthenticated, 
+  isAuthenticated,
+  authorizeRoles(['propriétaire', 'admin']),
   propertyController.updateProperty
 );
 
 // @route   DELETE /api/properties/:id
 // @desc    Supprimer un bien immobilier
 // @access  Private (propriétaire du bien ou admin)
-router.delete('/:id', 
-  isAuthenticated, 
+router.delete('/:id',
+  isAuthenticated,
+  authorizeRoles(['propriétaire', 'admin']),
   propertyController.deleteProperty
+);
+
+// @route   GET /api/properties/:id/images
+// @desc    Récupérer les images d'un bien immobilier
+// @access  Public
+router.get('/:id/images', propertyController.getPropertyImages);
+
+// @route   POST /api/properties/:id/images
+// @desc    Ajouter des images à un bien immobilier
+// @access  Private (propriétaire du bien ou admin)
+router.post('/:id/images',
+  isAuthenticated,
+  authorizeRoles(['propriétaire', 'admin']),
+  propertyController.addPropertyImages
+);
+
+// @route   DELETE /api/properties/:id/images/:imageId
+// @desc    Supprimer une image d'un bien immobilier
+// @access  Private (propriétaire du bien ou admin)
+router.delete('/:id/images/:imageId',
+  isAuthenticated,
+  authorizeRoles(['propriétaire', 'admin']),
+  propertyController.deletePropertyImage
 );
 
 export default router;
