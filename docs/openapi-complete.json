@@ -403,11 +403,9 @@
         }
       }
     },
-    "/users/register": {
+    "/auth/register": {
       "post": {
-        "tags": [
-          "Authentification"
-        ],
+        "tags": ["Authentification"],
         "summary": "Inscription d'un nouvel utilisateur",
         "description": "Permet de créer un nouveau compte utilisateur avec un rôle spécifique",
         "requestBody": {
@@ -423,28 +421,11 @@
                   "password"
                 ],
                 "properties": {
-                  "firstName": {
-                    "type": "string"
-                  },
-                  "lastName": {
-                    "type": "string"
-                  },
-                  "email": {
-                    "type": "string",
-                    "format": "email"
-                  },
-                  "password": {
-                    "type": "string",
-                    "format": "password"
-                  },
-                  "role": {
-                    "type": "string",
-                    "enum": [
-                      "client",
-                      "owner"
-                    ],
-                    "default": "client"
-                  }
+                  "firstName": { "type": "string" },
+                  "lastName": { "type": "string" },
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string", "format": "password" },
+                  "role": { "type": "string", "enum": ["client", "owner"], "default": "client" }
                 }
               }
             }
@@ -458,15 +439,9 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "token": {
-                      "type": "string"
-                    },
-                    "user": {
-                      "$ref": "#/components/schemas/User"
-                    }
+                    "success": { "type": "boolean" },
+                    "token": { "type": "string" },
+                    "user": { "$ref": "#/components/schemas/User" }
                   }
                 }
               }
@@ -479,12 +454,8 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "message": {
-                      "type": "string"
-                    }
+                    "success": { "type": "boolean" },
+                    "message": { "type": "string" }
                   }
                 }
               }
@@ -493,11 +464,9 @@
         }
       }
     },
-    "/users/login": {
+    "/auth/login": {
       "post": {
-        "tags": [
-          "Authentification"
-        ],
+        "tags": ["Authentification"],
         "summary": "Connexion d'un utilisateur",
         "description": "Authentifie un utilisateur et fournit un token JWT",
         "requestBody": {
@@ -506,19 +475,10 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": [
-                  "email",
-                  "password"
-                ],
+                "required": ["email", "password"],
                 "properties": {
-                  "email": {
-                    "type": "string",
-                    "format": "email"
-                  },
-                  "password": {
-                    "type": "string",
-                    "format": "password"
-                  }
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string", "format": "password" }
                 }
               }
             }
@@ -532,15 +492,9 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "token": {
-                      "type": "string"
-                    },
-                    "user": {
-                      "$ref": "#/components/schemas/User"
-                    }
+                    "success": { "type": "boolean" },
+                    "token": { "type": "string" },
+                    "user": { "$ref": "#/components/schemas/User" }
                   }
                 }
               }
@@ -553,14 +507,8 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": false
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Email ou mot de passe incorrect"
-                    }
+                    "success": { "type": "boolean", "example": false },
+                    "message": { "type": "string", "example": "Email ou mot de passe incorrect" }
                   }
                 }
               }
@@ -1178,6 +1126,295 @@
           "401": {
             "description": "Non autorisé"
           }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": ["Authentification"],
+        "summary": "Rafraîchir le token d'authentification",
+        "description": "Permet de rafraîchir le token JWT à l'aide d'un refresh token.",
+        "responses": {
+          "200": { "description": "Token rafraîchi avec succès" },
+          "401": { "description": "Refresh token invalide ou expiré" }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": ["Authentification"],
+        "summary": "Déconnexion d'un utilisateur",
+        "description": "Déconnecte l'utilisateur et invalide le refresh token.",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Déconnexion réussie" },
+          "401": { "description": "Non autorisé" }
+        }
+      }
+    },
+    "/auth/reset-password/{token}": {
+      "post": {
+        "tags": ["Authentification"],
+        "summary": "Réinitialiser le mot de passe avec un token",
+        "parameters": [
+          { "name": "token", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "password": { "type": "string", "format": "password" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Mot de passe réinitialisé avec succès" },
+          "400": { "description": "Token invalide ou expiré" }
+        }
+      }
+    },
+    "/properties/{id}": {
+      "get": {
+        "tags": ["Biens immobiliers"],
+        "summary": "Récupérer un bien immobilier par son ID",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Détails du bien immobilier", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Property" } } } },
+          "404": { "description": "Bien non trouvé" }
+        }
+      },
+      "put": {
+        "tags": ["Biens immobiliers"],
+        "summary": "Modifier un bien immobilier",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Property" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Bien modifié avec succès" },
+          "404": { "description": "Bien non trouvé" }
+        }
+      },
+      "delete": {
+        "tags": ["Biens immobiliers"],
+        "summary": "Supprimer un bien immobilier",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Bien supprimé avec succès" },
+          "404": { "description": "Bien non trouvé" }
+        }
+      }
+    },
+    "/ads/{id}": {
+      "get": {
+        "tags": ["Annonces"],
+        "summary": "Détails d'une annonce",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Détails de l'annonce", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Ad" } } } },
+          "404": { "description": "Annonce non trouvée" }
+        }
+      },
+      "put": {
+        "tags": ["Annonces"],
+        "summary": "Modifier une annonce",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Ad" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Annonce modifiée avec succès" },
+          "404": { "description": "Annonce non trouvée" }
+        }
+      },
+      "delete": {
+        "tags": ["Annonces"],
+        "summary": "Supprimer une annonce",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Annonce supprimée avec succès" },
+          "404": { "description": "Annonce non trouvée" }
+        }
+      }
+    },
+    "/ads/property/{propertyId}": {
+      "get": {
+        "tags": ["Annonces"],
+        "summary": "Annonces pour un bien spécifique",
+        "parameters": [
+          { "name": "propertyId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Liste des annonces pour le bien" },
+          "404": { "description": "Aucune annonce trouvée pour ce bien" }
+        }
+      }
+    },
+    "/ads": {
+      "post": {
+        "tags": ["Annonces"],
+        "summary": "Créer une nouvelle annonce",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Ad" }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Annonce créée avec succès" },
+          "400": { "description": "Données invalides" }
+        }
+      }
+    },
+    "/users/favorites": {
+      "get": {
+        "tags": ["Utilisateurs"],
+        "summary": "Liste des biens favoris",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Liste des favoris récupérée avec succès" }
+        }
+      }
+    },
+    "/users/favorites/{id}": {
+      "post": {
+        "tags": ["Utilisateurs"],
+        "summary": "Ajouter un bien aux favoris",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Bien ajouté aux favoris" },
+          "404": { "description": "Bien non trouvé" }
+        }
+      },
+      "delete": {
+        "tags": ["Utilisateurs"],
+        "summary": "Retirer un bien des favoris",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Bien retiré des favoris" },
+          "404": { "description": "Bien non trouvé" }
+        }
+      }
+    },
+    "/bookings/{id}": {
+      "get": {
+        "tags": ["Réservations"],
+        "summary": "Consulter une réservation",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Détails de la réservation" },
+          "404": { "description": "Réservation non trouvée" }
+        }
+      }
+    },
+    "/bookings/{id}/feedback": {
+      "post": {
+        "tags": ["Réservations"],
+        "summary": "Ajouter un avis après visite (client)",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "feedback": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Feedback ajouté avec succès" },
+          "404": { "description": "Réservation non trouvée" }
+        }
+      }
+    },
+    "/bookings/{id}/owner-feedback": {
+      "post": {
+        "tags": ["Réservations"],
+        "summary": "Ajouter un commentaire du propriétaire après visite",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "feedback": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Feedback propriétaire ajouté avec succès" },
+          "404": { "description": "Réservation non trouvée" }
+        }
+      }
+    },
+    "/bookings/property/{propertyId}": {
+      "get": {
+        "tags": ["Réservations"],
+        "summary": "Récupérer toutes les réservations d'un bien immobilier",
+        "parameters": [
+          { "name": "propertyId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Liste des réservations pour le bien" },
+          "404": { "description": "Aucune réservation trouvée pour ce bien" }
         }
       }
     }
