@@ -80,11 +80,7 @@
           },
           "role": {
             "type": "string",
-            "enum": [
-              "client",
-              "owner",
-              "admin"
-            ],
+            "enum": ["client", "propriétaire", "admin"],
             "description": "Rôle de l'utilisateur dans le système"
           },
           "createdAt": {
@@ -170,6 +166,11 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["disponible", "vendu", "loué", "réservé"],
+            "description": "Statut du bien immobilier"
           }
         }
       },
@@ -210,12 +211,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "active",
-              "pending",
-              "sold",
-              "rented"
-            ],
+            "enum": ["active", "inactive", "expired", "completed"],
             "description": "Statut de l'annonce"
           },
           "createdBy": {
@@ -792,12 +788,16 @@
                   "type": {
                     "type": "string",
                     "enum": [
-                      "apartment",
-                      "house",
-                      "land",
-                      "commercial",
-                      "other"
+                      "appartement",
+                      "maison",
+                      "terrain",
+                      "commerce",
+                      "bureau",
+                      "garage"
                     ]
+                  },
+                  "price": {
+                    "type": "number"
                   },
                   "surface": {
                     "type": "number"
@@ -880,8 +880,8 @@
             "schema": {
               "type": "string",
               "enum": [
-                "sale",
-                "rent"
+                "vente",
+                "location"
               ]
             }
           },
