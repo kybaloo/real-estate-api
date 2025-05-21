@@ -216,13 +216,87 @@ export const deleteAd = async (req, res) => {
 // @access  Public
 export const getAdsByProperty = async (req, res) => {
   try {
-    const ads = await Ad.find({ 
-      property: req.params.propertyId,
-      status: 'active'
-    }).populate('owner', 'firstName lastName');
-    
+    const { propertyId } = req.params;
+    const ads = await Ad.find({ property: propertyId, status: 'active' })
+      .populate('property')
+      .populate('owner', 'firstName lastName email phone')
+      .sort({ highlighted: -1, createdAt: -1 });
+
+    if (!ads.length) {
+      // Retourner un tableau vide si aucune annonce n'est trouvée, plutôt qu'un 404,
+      // car il est possible qu'un bien n'ait simplement pas d'annonces.
+      return res.json([]);
+    }
+
     res.json(ads);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Mettre en avant une annonce
+// @route   PUT /api/ads/:id/highlight
+// @access  Private (propriétaire de l'annonce ou admin)
+export const highlightAd = async (req, res) => {
+  try {
+    const ad = await Ad.findById(req.params.id);
+
+    if (!ad) {
+      return res.status(404).json({ message: 'Annonce non trouvée' });
+    }
+
+    // Vérifier que l'utilisateur est propriétaire de l'annonce ou admin
+    if (ad.owner.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Accès non autorisé' });
+    }
+
+    ad.highlighted = req.body.highlighted === undefined ? !ad.highlighted : req.body.highlighted;
+    ad.updatedAt = Date.now();
+    await ad.save();
+
+    res.json(ad);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Mettre à jour le statut d'une annonce
+// @route   PUT /api/ads/:id/status
+// @access  Private (propriétaire de l'annonce ou admin)
+export const updateAdStatus = async (req, res) => {
+  try {
+    const ad = await Ad.findById(req.params.id);
+
+    if (!ad) {
+      return res.status(404).json({ message: 'Annonce non trouvée' });
+    }
+
+    // Vérifier que l'utilisateur est propriétaire de l'annonce ou admin
+    if (ad.owner.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Accès non autorisé' });
+    }
+
+    const { status } = req.body;
+    if (!status || !['active', 'inactive', 'sold', 'rented'].includes(status)) {
+      return res.status(400).json({ message: 'Statut invalide' });
+    }
+
+    ad.status = status;
+    ad.updatedAt = Date.now();
+    await ad.save();
+
+    // Optionnel: Mettre à jour le statut de la propriété si l'annonce est marquée comme vendue/louée
+    if ((status === 'sold' || status === 'rented') && ad.property) {
+        const property = await Property.findById(ad.property);
+        if (property) {
+            property.status = status === 'sold' ? 'vendu' : 'loué';
+            await property.save();
+        }
+    }
+
+
+    res.json(ad);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 };
