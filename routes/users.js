@@ -5,30 +5,6 @@ import * as userController from '../controllers/userController.js';
 
 const router = express.Router();
 
-// @route   POST /api/users/register
-// @desc    Inscription d'un nouvel utilisateur
-// @access  Public
-router.post('/register', [
-  body('firstName', 'Le prénom est requis').notEmpty(),
-  body('lastName', 'Le nom est requis').notEmpty(),
-  body('email', 'Veuillez fournir un email valide').isEmail(),
-  body('password', 'Le mot de passe doit contenir au moins 6 caractères').isLength({ min: 6 }),
-  body('role').custom(value => {
-    if (value && !['client', 'propriétaire'].includes(value)) {
-      throw new Error('Rôle invalide');
-    }
-    return true;
-  })
-], userController.registerUser);
-
-// @route   POST /api/users/login
-// @desc    Connexion d'un utilisateur
-// @access  Public
-router.post('/login', [
-  body('email', 'Veuillez fournir un email valide').isEmail(),
-  body('password', 'Le mot de passe est requis').exists()
-], userController.loginUser);
-
 // @route   GET /api/users/me
 // @desc    Obtenir le profil de l'utilisateur connecté
 // @access  Private
