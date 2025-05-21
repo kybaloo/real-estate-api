@@ -218,34 +218,111 @@ export const deleteBooking = async (req, res) => {
 // @desc    Ajouter un avis après une visite
 // @route   POST /api/bookings/:id/feedback
 // @access  Private (client ayant fait la réservation)
-export const addFeedback = async (req, res) => {
+export const addClientFeedback = async (req, res) => {
   try {
     const booking = await Booking.findById(req.params.id);
-    
+
     if (!booking) {
       return res.status(404).json({ message: 'Réservation non trouvée' });
     }
-    
-    // Vérifier que la réservation est terminée
-    if (booking.status !== 'completed') {
-      return res.status(400).json({ message: 'Vous ne pouvez ajouter un avis que pour une visite terminée' });
-    }
-    
-    // Vérifier que l'utilisateur est le client
+
+    // Vérifier que l'utilisateur est le client de cette réservation
     if (booking.client.toString() !== req.user.id) {
-      return res.status(403).json({ message: 'Accès non autorisé' });
+      return res.status(403).json({ message: 'Accès non autorisé. Seul le client de la réservation peut laisser un avis.' });
     }
-    
-    // Ajouter l'avis du client
-    booking.feedbackClient = {
-      text: req.body.text,
-      rating: parseInt(req.body.rating) || 0
+
+    // Vérifier que la visite est complétée
+    if (booking.status !== 'completed') {
+      return res.status(400).json({ message: 'Vous ne pouvez laisser un avis qu\'après une visite complétée.' });
+    }
+
+    // Vérifier si un avis existe déjà
+    if (booking.clientFeedback) {
+        return res.status(400).json({ message: 'Un avis a déjà été soumis pour cette réservation.' });
+    }
+
+    const { rating, comment } = req.body;
+    if (rating === undefined || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: 'La note doit être comprise entre 1 et 5.' });
+    }
+
+    booking.clientFeedback = {
+      user: req.user.id,
+      rating,
+      comment: comment || ''
     };
-    
+    booking.updatedAt = Date.now();
     await booking.save();
-    
-    res.json(booking);
+
+    res.status(201).json(booking);
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Ajouter un commentaire du propriétaire après une visite
+// @route   POST /api/bookings/:id/owner-feedback
+// @access  Private (propriétaire du bien)
+export const addOwnerFeedback = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({ message: 'Réservation non trouvée' });
+    }
+
+    // Vérifier que l'utilisateur est le propriétaire du bien de cette réservation
+    if (booking.owner.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Accès non autorisé. Seul le propriétaire du bien peut laisser un commentaire.' });
+    }
+
+     // Vérifier si un commentaire existe déjà
+    if (booking.ownerFeedback) {
+        return res.status(400).json({ message: 'Un commentaire du propriétaire a déjà été soumis pour cette réservation.' });
+    }
+
+    const { comment } = req.body;
+    if (!comment) {
+      return res.status(400).json({ message: 'Le commentaire ne peut pas être vide.' });
+    }
+
+    booking.ownerFeedback = {
+      user: req.user.id,
+      comment
+    };
+    booking.updatedAt = Date.now();
+    await booking.save();
+
+    res.status(201).json(booking);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+// @desc    Récupérer toutes les réservations d'un bien immobilier
+// @route   GET /api/bookings/property/:propertyId
+// @access  Private (propriétaire du bien, admin)
+export const getBookingsByProperty = async (req, res) => {
+  try {
+    const { propertyId } = req.params;
+    const property = await Property.findById(propertyId);
+
+    if (!property) {
+      return res.status(404).json({ message: 'Bien immobilier non trouvé' });
+    }
+
+    // Vérifier que l'utilisateur est propriétaire du bien ou admin
+    if (property.owner.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Accès non autorisé' });
+    }
+
+    const bookings = await Booking.find({ property: propertyId })
+      .populate('client', 'firstName lastName email')
+      .populate('ad', 'title')
+      .sort({ date: -1 });
+
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
